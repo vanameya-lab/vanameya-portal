@@ -100,7 +100,7 @@ export function InvoiceTemplate({ data }: { data: EntryFormValues }) {
   }
 
   const totalTax = cgst + sgst + igst;
-  const courierCharge = (data.delivery === "Courier" && data.chargeCourierToCustomer) ? (data.courierCharge || 0) : 0;
+  const courierCharge = data.delivery === "Courier" ? (data.customerCourierCharge || 0) : 0;
   const totalAmount = totalItemAmount + courierCharge;
   const totalTaxableValue = taxableValue + courierCharge;
 
