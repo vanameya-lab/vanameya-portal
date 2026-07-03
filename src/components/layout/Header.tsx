@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function Header() {
@@ -28,6 +31,16 @@ export function Header() {
         <div className="flex items-center gap-4 text-sm">
           <span className="text-muted-foreground hidden sm:inline-block">Internal Portal</span>
           <ThemeToggle />
+          <button
+            onClick={async () => {
+              await fetch('/api/auth/logout', { method: 'POST' });
+              window.location.href = '/login';
+            }}
+            className="md:hidden text-muted-foreground hover:text-destructive transition-colors p-2"
+            aria-label="Sign out"
+          >
+            <LogOut size={20} />
+          </button>
         </div>
       </div>
     </header>

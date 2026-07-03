@@ -2,37 +2,37 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(req: NextRequest) {
-  const basicAuth = req.headers.get('authorization');
+  const authToken = req.cookies.get('auth_token')?.value;
+  const url = req.nextUrl.clone();
 
-  if (basicAuth) {
-    const authValue = basicAuth.split(' ')[1];
-    const [user, pwd] = atob(authValue).split(':');
-
-    const expectedUser = process.env.ADMIN_USERNAME || 'admin';
-    const expectedPassword = process.env.ADMIN_PASSWORD || 'password123';
-
-    if (user === expectedUser && pwd === expectedPassword) {
-      return NextResponse.next();
+  // If trying to access login page while authenticated, redirect to home
+  if (url.pathname === '/login') {
+    if (authToken === 'authenticated') {
+      url.pathname = '/';
+      return NextResponse.redirect(url);
     }
+    return NextResponse.next();
   }
 
-  return new NextResponse('Auth required', {
-    status: 401,
-    headers: {
-      'WWW-Authenticate': `Basic realm="Secure Area"`,
-    },
-  });
+  // If not authenticated, redirect to login
+  if (authToken !== 'authenticated') {
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
+     * - api/auth (authentication endpoints)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
   ],
 };
+

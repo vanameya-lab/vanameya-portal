@@ -292,28 +292,22 @@ export function SalesEntryForm({ editId }: SalesEntryFormProps = {}) {
               {watchDelivery === "Courier" && (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="courierCharge">Courier Charge (₹) - Optional</Label>
-                    <Input id="courierCharge" type="number" min="0" step="0.01" placeholder="Can be entered later" {...register("courierCharge", { valueAsNumber: true })} />
+                    <Label htmlFor="courierCharge">Total Courier Charge Paid to Agency (₹)</Label>
+                    <Input id="courierCharge" type="number" min="0" step="0.01" placeholder="e.g. 100" {...register("courierCharge", { valueAsNumber: true })} />
                     {errors.courierCharge && (
                       <p className="text-sm font-medium text-destructive">{errors.courierCharge.message}</p>
                     )}
                   </div>
                   
-                  <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm bg-background">
-                    <div className="space-y-0.5">
-                      <Label className="text-sm font-medium">Charge to Customer</Label>
-                      <p className="text-xs text-muted-foreground">Include charge on the invoice.</p>
-                    </div>
-                    <Controller
-                      control={control}
-                      name="chargeCourierToCustomer"
-                      render={({ field }) => (
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      )}
-                    />
+                  <div className="space-y-2">
+                    <Label htmlFor="customerCourierCharge">Amount Charged to Customer (₹)</Label>
+                    <Input id="customerCourierCharge" type="number" min="0" step="0.01" placeholder="e.g. 50" {...register("customerCourierCharge", { valueAsNumber: true })} />
+                    {errors.customerCourierCharge && (
+                      <p className="text-sm font-medium text-destructive">{errors.customerCourierCharge.message}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Company pays: ₹{(watch("courierCharge") || 0) - (watch("customerCourierCharge") || 0)}
+                    </p>
                   </div>
                 </div>
               )}

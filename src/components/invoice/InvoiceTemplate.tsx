@@ -118,25 +118,53 @@ export function InvoiceTemplate({ data }: { data: EntryFormValues }) {
       <div className="w-full max-w-[210mm] bg-white shadow-xl print:shadow-none print:w-full print:max-w-none">
         
         {/* Header Actions */}
-        <div className="flex justify-end p-4 mb-2 print:hidden bg-background border-b text-foreground">
-          <Button onClick={() => window.print()} variant="outline" className="mr-2">
-            Print Invoice
-          </Button>
-          <Button onClick={() => window.history.back()}>
+        <div className="flex justify-end p-4 mb-2 print:hidden bg-background border-b text-foreground gap-2">
+          <Button onClick={() => window.history.back()} variant="outline">
             Back to Entry
+          </Button>
+          <Button 
+            onClick={async () => {
+              if (navigator.share) {
+                try {
+                  await navigator.share({
+                    title: `Invoice - ${customerName}`,
+                    text: `Here is the invoice for ${customerName}`,
+                    url: window.location.href
+                  });
+                } catch (err) {
+                  console.error("Error sharing", err);
+                }
+              } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Invoice link copied to clipboard!");
+              }
+            }} 
+            variant="default"
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            Share to WhatsApp
+          </Button>
+          <Button onClick={() => window.print()} variant="default">
+            Print / Save PDF
           </Button>
         </div>
 
         {/* Invoice Page Container (A4) */}
-        <div className="p-4 sm:p-8 print:p-0 print:m-0 mx-auto w-full box-border text-black bg-white" style={{ aspectRatio: '1 / 1.414', minHeight: '297mm', maxWidth: '210mm' }}>
+        <style dangerouslySetInnerHTML={{__html: `
+          @media print {
+            @page { size: A4; margin: 0; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          }
+        `}} />
+        <div className="p-4 sm:p-8 print:p-[10mm] mx-auto w-full box-border text-black bg-white flex flex-col" style={{ aspectRatio: '1 / 1.414', height: '297mm', maxWidth: '210mm', overflow: 'hidden' }}>
           
-          <div className="flex justify-between items-end mb-1 print:mb-0">
+          <div className="flex justify-between items-end mb-1 print:mb-0 flex-shrink-0">
             <div className="font-bold text-sm italic">TAX INVOICE</div>
             <div className="text-xs">Original Copy For Customer</div>
           </div>
 
           {/* Main Border Wrapper */}
-          <div className="border border-black flex flex-col flex-1 min-h-[270mm]">
+          <div className="border border-black flex flex-col flex-1 h-full overflow-hidden">
             
             {/* Header Section */}
             <div className="grid grid-cols-2 border-b border-black">
@@ -379,7 +407,7 @@ export function InvoiceTemplate({ data }: { data: EntryFormValues }) {
 
           </div>
 
-          <p className="text-center mt-1 text-[10px]">This is a Computer Generated Invoice</p>
+          <p className="text-center mt-1 text-[10px] flex-shrink-0">This is a Computer Generated Invoice</p>
         </div>
       </div>
     </div>

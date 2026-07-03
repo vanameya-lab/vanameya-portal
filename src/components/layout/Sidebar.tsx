@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, LayoutDashboard, FilePlus, Settings, CreditCard } from "lucide-react";
+import { Home, LayoutDashboard, FilePlus, Settings, CreditCard, LogOut, PieChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Sales Entry", href: "/entry", icon: FilePlus },
   { name: "Payments", href: "/payments", icon: CreditCard },
+  { name: "Expenses", href: "/expenses", icon: PieChart },
 ];
 
 export function Sidebar() {
@@ -37,7 +38,7 @@ export function Sidebar() {
           );
         })}
       </div>
-      <div className="mt-auto p-4">
+      <div className="mt-auto p-4 flex flex-col gap-2">
         <Link
           href="#"
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -45,6 +46,16 @@ export function Sidebar() {
           <Settings size={18} />
           Settings
         </Link>
+        <button
+          onClick={async () => {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login';
+          }}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+        >
+          <LogOut size={18} />
+          Sign Out
+        </button>
       </div>
     </aside>
   );

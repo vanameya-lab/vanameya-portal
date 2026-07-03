@@ -32,8 +32,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       quantity: data.quantity,
       rate: data.rate,
       delivery: data.delivery_type,
-      courierCharge: data.courier_charge || undefined,
-      chargeCourierToCustomer: data.courier_charge > 0,
+      courierCharge: data.courier_charge > 0 ? data.courier_charge : undefined,
+      customerCourierCharge: data.courier_charge || undefined,
       entryType: data.entry_type
     };
 
@@ -54,7 +54,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const {
       salesperson, customerName, address, phoneNumber, email,
       customerType: formCustomerType, gstNumber, product, 
-      quantity, rate, delivery, entryType, courierCharge, chargeCourierToCustomer
+      quantity, rate, delivery, entryType, courierCharge, customerCourierCharge
     } = body;
 
     // 1. Get existing sale
@@ -91,7 +91,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
     
     const courierAmt = Number(courierCharge || 0);
-    const invoiceCourierAmt = chargeCourierToCustomer ? courierAmt : 0;
+    const invoiceCourierAmt = Number(customerCourierCharge || 0);
     const grandTotal = totalAmount + invoiceCourierAmt;
 
     // Recalculate balance
@@ -122,14 +122,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     // Always clear old courier expense for this sale to prevent duplicates
     await supabase.from('expenses').delete().eq('reference_id', id).eq('category', 'Courier');
 
-    // Log expense if company pays
-    if (!chargeCourierToCustomer && courierAmt > 0) {
+    // Log expense if company pays any part of the courier charge
+    const companyExpense = courierAmt - invoiceCourierAmt;
+    if (companyExpense > 0) {
       const { error: expenseError } = await supabase.from('expenses').insert([{
         expense_date: new Date().toISOString().split('T')[0],
         spent_by: salesperson,
         category: 'Courier',
         description: `Courier charges for sale to ${customerName}`,
-        amount: courierAmt,
+        amount: companyExpense,
         payment_mode: 'Cash',
         reference_id: id
       }]);
@@ -150,6 +151,25 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   } catch (error: any) {
     console.error('API Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    
+    // Also delete any associated expenses (like courier charges)
+    await supabase.from('expenses').delete().eq('reference_id', id);
+
+    // Delete the sale
+    const { error } = await supabase.from('sales_entries').delete().eq('id', id);
+    
+    if (error) throw error;
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Delete API Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

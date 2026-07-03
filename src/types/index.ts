@@ -35,7 +35,7 @@ export const EntryFormSchema = z.object({
     message: "Please select a delivery method.",
   }),
   courierCharge: z.coerce.number().optional(),
-  chargeCourierToCustomer: z.boolean().default(true),
+  customerCourierCharge: z.coerce.number().optional(),
   entryType: z.enum(["Sale", "Sample"], {
     message: "Please select an entry type.",
   }),
@@ -49,6 +49,16 @@ export const EntryFormSchema = z.object({
 }, {
   message: "Courier charge cannot be negative.",
   path: ["courierCharge"],
+}).refine((data) => {
+  if (data.delivery === "Courier") {
+    const total = data.courierCharge || 0;
+    const toCustomer = data.customerCourierCharge || 0;
+    if (toCustomer > total) return false;
+  }
+  return true;
+}, {
+  message: "Amount charged to customer cannot exceed total courier charge.",
+  path: ["customerCourierCharge"],
 }).refine((data) => {
   if (data.entryType === "Sample" && (data.sampleQuantity === undefined || data.sampleQuantity < 1)) {
     return false;

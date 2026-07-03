@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ export default function PaymentsPage() {
   const [modalMode, setModalMode] = useState<'receive' | 'edit'>('receive');
   const [paymentAmount, setPaymentAmount] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPayments();
@@ -70,6 +72,25 @@ export default function PaymentsPage() {
   const handleCloseModal = () => {
     setSelectedRecord(null);
     setPaymentAmount("");
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this record entirely?")) return;
+    
+    setIsDeleting(id);
+    try {
+      const res = await fetch(`/api/sales/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Record deleted successfully");
+        fetchPayments();
+      } else {
+        toast.error("Failed to delete record");
+      }
+    } catch (error) {
+      toast.error("An error occurred during deletion");
+    } finally {
+      setIsDeleting(null);
+    }
   };
 
   const handleSubmitPayment = async (e: React.FormEvent) => {
@@ -212,6 +233,16 @@ export default function PaymentsPage() {
                         </Button>
                         <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleOpenModal(record, 'edit')} title="Edit Payment">
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+                        </Button>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" 
+                          onClick={() => handleDelete(record.id)} 
+                          disabled={isDeleting === record.id}
+                          title="Delete Record"
+                        >
+                          <Trash2 size={16} />
                         </Button>
                       </TableCell>
                     </TableRow>

@@ -1,3 +1,9 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -9,6 +15,30 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 export function RecentEntriesTable({ entries }: { entries: any[] }) {
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this record?")) return;
+    
+    setIsDeleting(id);
+    try {
+      const res = await fetch(`/api/sales/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        router.refresh();
+      } else {
+        alert("Failed to delete record");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred");
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
   return (
     <div className="rounded-md border bg-card">
       <Table>
@@ -20,12 +50,13 @@ export function RecentEntriesTable({ entries }: { entries: any[] }) {
             <TableHead>Product</TableHead>
             <TableHead className="text-right">Quantity</TableHead>
             <TableHead className="text-right">Type</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {entries.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+              <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
                 No recent entries found.
               </TableCell>
             </TableRow>
@@ -45,6 +76,17 @@ export function RecentEntriesTable({ entries }: { entries: any[] }) {
                   >
                     {entry.entry_type}
                   </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => handleDelete(entry.id)}
+                    disabled={isDeleting === entry.id}
+                  >
+                    <Trash2 size={16} />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))

@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       delivery,
       entryType,
       courierCharge,
-      chargeCourierToCustomer
+      customerCourierCharge
     } = body;
 
     // 1. Find or Create Customer
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     }
     
     const courierAmt = Number(courierCharge || 0);
-    const invoiceCourierAmt = chargeCourierToCustomer ? courierAmt : 0;
+    const invoiceCourierAmt = Number(customerCourierCharge || 0);
     const grandTotal = totalAmount + invoiceCourierAmt;
     
     const salesEntry = await createSalesEntry({
@@ -85,14 +85,15 @@ export async function POST(request: Request) {
       balance_amount: grandTotal
     });
 
-    // Automatically log expense if company pays for courier
-    if (!chargeCourierToCustomer && courierAmt > 0) {
+    // Automatically log expense if company pays for any part of the courier
+    const companyExpense = courierAmt - invoiceCourierAmt;
+    if (companyExpense > 0) {
       await supabase.from('expenses').insert([{
         expense_date: new Date().toISOString().split('T')[0],
         spent_by: salesperson,
         category: 'Courier',
         description: `Courier charges for sale to ${customerName}`,
-        amount: courierAmt,
+        amount: companyExpense,
         payment_mode: 'Cash',
         reference_id: salesEntry.id
       }]);
