@@ -52,19 +52,23 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Username</label>
+            <label htmlFor="username" className="block text-sm font-medium text-foreground mb-1">Username</label>
             <input
+              id="username"
               name="username"
               type="text"
+              autoComplete="username"
               className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1">Password</label>
             <input
+              id="password"
               name="password"
               type="password"
+              autoComplete="current-password"
               className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
               required
             />

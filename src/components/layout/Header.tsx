@@ -34,7 +34,7 @@ export function Header() {
                 className="object-contain drop-shadow-sm dark:hidden"
               />
               <Image 
-                src="/logo/Logo%20White.webp"
+                src="/logo/white.png"
                 alt="VANAMÉYA Logo"
                 fill
                 sizes="40px"
