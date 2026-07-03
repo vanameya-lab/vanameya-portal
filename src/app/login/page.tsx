@@ -6,16 +6,18 @@ import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    
+    const formData = new FormData(e.currentTarget);
+    const username = formData.get("username");
+    const password = formData.get("password");
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -52,9 +54,8 @@ export default function LoginPage() {
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">Username</label>
             <input
+              name="username"
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
               required
             />
@@ -62,9 +63,8 @@ export default function LoginPage() {
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">Password</label>
             <input
+              name="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
               required
             />
